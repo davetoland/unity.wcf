@@ -6,23 +6,18 @@ namespace Unity.Wcf
 {
     public class UnityServiceHost : ServiceHost
     {
-        public UnityServiceHost(IUnityContainer container, Type serviceType, params Uri[] baseAddresses)
+        public UnityServiceHost(IUnityContainer container, string registrationName, Type serviceType, params Uri[] baseAddresses)
             : base(serviceType, baseAddresses)
         {
             if (container == null)
-            {
                 throw new ArgumentNullException("container");
-            }
 
             ApplyServiceBehaviors(container);
-
             ApplyContractBehaviors(container);
 
-            foreach (var contractDescription in ImplementedContracts.Values)
+            foreach (ContractDescription contractDescription in ImplementedContracts.Values)
             {
-                var contractBehavior =
-                    new UnityContractBehavior(new UnityInstanceProvider(container, contractDescription.ContractType));
-
+                var contractBehavior = new UnityContractBehavior(new UnityInstanceProvider(container, contractDescription.ContractType, registrationName));
                 contractDescription.Behaviors.Add(contractBehavior);
             }
         }

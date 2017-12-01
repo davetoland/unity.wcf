@@ -9,29 +9,28 @@ namespace Unity.Wcf
     {
         private readonly IUnityContainer _container;
         private readonly Type _contractType;
+        private readonly string _registrationName;
 
-        public UnityInstanceProvider(IUnityContainer container, Type contractType)
+        public UnityInstanceProvider(IUnityContainer container, Type contractType, string registrationName)
         {
-            if (container == null)
-            {
-                throw new ArgumentNullException("container");
-            }
-
-            if (contractType == null)
-            {
-                throw new ArgumentNullException("contractType");
-            }
+            _container = container ?? throw new ArgumentNullException("container");
+            _contractType = contractType ?? throw new ArgumentNullException("contractType");
 
             _container = container;
             _contractType = contractType;
+            _registrationName = registrationName;
         }
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
-            var childContainer =
-                instanceContext.Extensions.Find<UnityInstanceContextExtension>().GetChildContainer(_container);
+            var result = new object();
+            IUnityContainer childContainer = instanceContext.Extensions.Find<UnityInstanceContextExtension>().GetChildContainer(_container);
+            if (!string.IsNullOrEmpty(_registrationName))
+                result = childContainer.Resolve(_contractType, _registrationName, new Resolution.ResolverOverride[0]);
+            else
+                result = childContainer.Resolve(_contractType);
 
-            return childContainer.Resolve(_contractType);
+            return result;
         }
 
         public object GetInstance(InstanceContext instanceContext)

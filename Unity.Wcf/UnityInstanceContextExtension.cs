@@ -10,16 +10,17 @@ namespace Unity.Wcf
         public IUnityContainer GetChildContainer(IUnityContainer container)
         {
             if (container == null)
-            {
                 throw new ArgumentNullException("container");
-            }
 
             return _childContainer ?? (_childContainer = container.CreateChildContainer());
         }
 
         public void DisposeOfChildContainer()
         {
-            _childContainer?.Dispose();
+            if (_childContainer == null)
+                return;
+            else
+                _childContainer?.Dispose();
         }
 
         public void Attach(InstanceContext owner)
